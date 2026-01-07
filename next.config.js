@@ -75,6 +75,7 @@ module.exports = (phase, { defaultConfig }) => {
       return config
     },
     trailingSlash: true,
+    staticPageGenerationTimeout: 180,
     images: {
       deviceSizes: [640, 750, 828, 1080, 1200, 1504, 1920],
       remotePatterns: [
