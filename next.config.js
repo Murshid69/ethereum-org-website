@@ -165,6 +165,7 @@ module.exports = (phase, { defaultConfig }) => {
     ...nextConfig,
     experimental: {
       instrumentationHook: true,
+      workerThreads: false,
     },
   }
 
