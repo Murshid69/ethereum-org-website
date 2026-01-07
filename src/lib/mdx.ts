@@ -1,5 +1,5 @@
-import { execSync } from "child_process"
-import { createHash } from "crypto"
+// import { execSync } from "child_process"
+// import { createHash } from "crypto"
 import fsSync, { type Dirent } from "fs"
 import fs from "fs/promises"
 import path from "path"
@@ -12,128 +12,128 @@ import type { Frontmatter, Lang } from "@/lib/types"
 
 import { DEFAULT_LOCALE } from "@/lib/constants"
 
-import type { ContentFile, GitContributor } from "./types"
+import type { ContentFile } from "./types"
 
 const CONTENT_DIR = path.join(process.cwd(), "public", "content")
 const CACHE_TTL = process.env.NODE_ENV === "development" ? 30_000 : 60_000 // 30s dev, 60s prod
 
 // Cache for git last modified dates to avoid repeated git calls
-const gitDateCache = new Map<string, string>()
+// const gitDateCache = new Map<string, string>()
 
 /**
  * Get the last modified date of a file from git history.
  * Returns ISO date string or undefined if not available.
  */
-function getGitLastModified(filePath: string): string | undefined {
-  // Check cache first
-  const cached = gitDateCache.get(filePath)
-  if (cached) return cached
+// function getGitLastModified(filePath: string): string | undefined {
+//   // Check cache first
+//   const cached = gitDateCache.get(filePath)
+//   if (cached) return cached
 
-  try {
-    // Get last commit date for this file in ISO format
-    const result = execSync(`git log -1 --format=%cI -- "${filePath}"`, {
-      encoding: "utf8",
-      cwd: process.cwd(),
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim()
+//   try {
+//     // Get last commit date for this file in ISO format
+//     const result = execSync(`git log -1 --format=%cI -- "${filePath}"`, {
+//       encoding: "utf8",
+//       cwd: process.cwd(),
+//       stdio: ["pipe", "pipe", "pipe"],
+//     }).trim()
 
-    if (result) {
-      gitDateCache.set(filePath, result)
-      return result
-    }
-  } catch {
-    // Git not available or file has no history
-  }
+//     if (result) {
+//       gitDateCache.set(filePath, result)
+//       return result
+//     }
+//   } catch {
+//     // Git not available or file has no history
+//   }
 
-  return undefined
-}
+//   return undefined
+// }
 
 // Cache for git contributors to avoid repeated git calls
-const gitContributorsCache = new Map<
-  string,
-  { contributors: GitContributor[]; timestamp: number }
->()
+// const gitContributorsCache = new Map<
+//   string,
+//   { contributors: GitContributor[]; timestamp: number }
+// >()
 
 /**
  * Get contributors for a file from git history.
  * Returns array of contributors with commit counts, sorted by most commits.
  */
-function getGitContributors(filePath: string): GitContributor[] {
-  // Check cache first
-  const cached = gitContributorsCache.get(filePath)
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.contributors
-  }
+// function getGitContributors(filePath: string): GitContributor[] {
+//   // Check cache first
+//   const cached = gitContributorsCache.get(filePath)
+//   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+//     return cached.contributors
+//   }
 
-  try {
-    // Get all commits for this file with author info
-    // Format: name<email>
-    const result = execSync(
-      `git log --format="%aN<%aE>" --follow -- "${filePath}"`,
-      {
-        encoding: "utf8",
-        cwd: process.cwd(),
-        stdio: ["pipe", "pipe", "pipe"],
-      }
-    ).trim()
+//   try {
+//     // Get all commits for this file with author info
+//     // Format: name<email>
+//     const result = execSync(
+//       `git log --format="%aN<%aE>" --follow -- "${filePath}"`,
+//       {
+//         encoding: "utf8",
+//         cwd: process.cwd(),
+//         stdio: ["pipe", "pipe", "pipe"],
+//       }
+//     ).trim()
 
-    if (!result) {
-      gitContributorsCache.set(filePath, {
-        contributors: [],
-        timestamp: Date.now(),
-      })
-      return []
-    }
+//     if (!result) {
+//       gitContributorsCache.set(filePath, {
+//         contributors: [],
+//         timestamp: Date.now(),
+//       })
+//       return []
+//     }
 
-    // Count commits per contributor
-    const commitCounts = new Map<
-      string,
-      { name: string; email: string; commits: number }
-    >()
-    const lines = result.split("\n").filter(Boolean)
+//     // Count commits per contributor
+//     const commitCounts = new Map<
+//       string,
+//       { name: string; email: string; commits: number }
+//     >()
+//     const lines = result.split("\n").filter(Boolean)
 
-    for (const line of lines) {
-      const match = line.match(/^(.+)<(.+)>$/)
-      if (match) {
-        const [, name, email] = match
-        const key = email.toLowerCase()
-        const existing = commitCounts.get(key)
-        if (existing) {
-          existing.commits++
-        } else {
-          commitCounts.set(key, { name, email, commits: 1 })
-        }
-      }
-    }
+//     for (const line of lines) {
+//       const match = line.match(/^(.+)<(.+)>$/)
+//       if (match) {
+//         const [, name, email] = match
+//         const key = email.toLowerCase()
+//         const existing = commitCounts.get(key)
+//         if (existing) {
+//           existing.commits++
+//         } else {
+//           commitCounts.set(key, { name, email, commits: 1 })
+//         }
+//       }
+//     }
 
-    // Convert to array and sort by commit count
-    const contributors: GitContributor[] = Array.from(commitCounts.values())
-      .sort((a, b) => b.commits - a.commits)
-      .map(({ name, email, commits }) => ({
-        name,
-        email,
-        commits,
-        // Generate avatar URL: GitHub for noreply emails, Gravatar for others
-        avatarUrl: email.includes("@users.noreply.github.com")
-          ? `https://github.com/${email.split("@")[0].replace(/^\d+\+/, "")}.png`
-          : `https://www.gravatar.com/avatar/${createHash("md5").update(email.toLowerCase().trim()).digest("hex")}?d=identicon`,
-      }))
+//     // Convert to array and sort by commit count
+//     const contributors: GitContributor[] = Array.from(commitCounts.values())
+//       .sort((a, b) => b.commits - a.commits)
+//       .map(({ name, email, commits }) => ({
+//         name,
+//         email,
+//         commits,
+//         // Generate avatar URL: GitHub for noreply emails, Gravatar for others
+//         avatarUrl: email.includes("@users.noreply.github.com")
+//           ? `https://github.com/${email.split("@")[0].replace(/^\d+\+/, "")}.png`
+//           : `https://www.gravatar.com/avatar/${createHash("md5").update(email.toLowerCase().trim()).digest("hex")}?d=identicon`,
+//       }))
 
-    gitContributorsCache.set(filePath, {
-      contributors,
-      timestamp: Date.now(),
-    })
+//     gitContributorsCache.set(filePath, {
+//       contributors,
+//       timestamp: Date.now(),
+//     })
 
-    return contributors
-  } catch {
-    // Git not available or file has no history
-    gitContributorsCache.set(filePath, {
-      contributors: [],
-      timestamp: Date.now(),
-    })
-    return []
-  }
-}
+//     return contributors
+//   } catch {
+//     // Git not available or file has no history
+//     gitContributorsCache.set(filePath, {
+//       contributors: [],
+//       timestamp: Date.now(),
+//     })
+//     return []
+//   }
+// }
 
 // Cache for slugs to avoid re-scanning filesystem on every request
 const slugsCache = new Map<string, { slugs: string[][]; timestamp: number }>()
@@ -293,10 +293,12 @@ async function tryLoadContent(
       const meta = {
         ...data,
         lang: data.lang || DEFAULT_LOCALE,
-        updatedAt: getGitLastModified(filePath) || "",
+        // updatedAt: getGitLastModified(filePath) || "",
+        updatedAt: "",
       } as Frontmatter
 
-      const contributors = getGitContributors(filePath)
+      // const contributors = getGitContributors(filePath)
+      const contributors = []
 
       return {
         slug: slugPath,
