@@ -29,6 +29,7 @@ export interface SharedFrontmatter {
   sidebarDepth?: number
   isOutdated?: boolean
   template?: Layout
+  updatedAt: string
 }
 
 export interface StaticFrontmatter extends SharedFrontmatter {

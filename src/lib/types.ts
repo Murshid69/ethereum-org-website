@@ -1303,3 +1303,52 @@ export interface MatomoEventOptions {
   eventName: string
   eventValue?: string
 }
+
+export interface ContentMeta {
+  // Required
+  title: string
+  description: string
+
+  // Layout
+  layout?: Layout
+
+  // Dates
+  publishedAt?: string
+  updatedAt?: string
+
+  // Author
+  author?: string
+
+  // Images
+  image?: string
+  imageAlt?: string
+
+  // i18n
+  lang: Lang
+
+  // Docs-specific
+  sidebar?: boolean
+  sidebarDepth?: number
+
+  // SEO
+  metaTitle?: string
+  noIndex?: boolean
+}
+
+export interface GitContributor {
+  name: string
+  email: string
+  commits: number
+  avatarUrl?: string
+}
+
+export interface ContentFile {
+  slug: string
+  locale: string
+  meta: Frontmatter
+  content: string
+  isFallback: boolean
+  fallbackLocale?: string
+  readingTime: number
+  contributors: GitContributor[]
+}
